@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harcama Takip Uygulaması</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f4f7fe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      margin-bottom: 16px;
+    }
+    .header-card {
+      background: linear-gradient(135deg, #4318FF 0%, #868CFF 100%);
+      color: white;
+      text-align: center;
+      padding: 24px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .header-card h2 {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.8;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .header-card .total-amount {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2b3674;
+      margin-bottom: 6px;
+    }
+    .input-field {
+      width: 100%;
+      max-width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e0e5f2;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+      background-color: #fff;
+      color: #1b2559;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .input-field:focus {
+      border-color: #4318FF;
+    }
+    .btn-add {
+      width: 100%;
+      background: #4318FF;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .filter-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .select-field {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e0e5f2;
+      border-radius: 12px;
+      background: white;
+      font-size: 13px;
+      outline: none;
+      color: #1b2559;
+    }
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .list-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2b3674;
+    }
+    .reset-btn {
+      background: none;
+      border: none;
+      color: #ee5d50;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .expense-list {
+      list-style: none;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f4f7fe;
+    }
+    .expense-item:last-child {
+      border-bottom: none;
+    }
+    .expense-info .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1b2559;
+    }
+    .expense-info .date {
+      font-size: 11px;
+      color: #8f9bba;
+      margin-top: 2px;
+    }
+    .expense-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .expense-amount {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ee5d50;
+    }
+    .delete-item-btn {
+      background: #fff0f0;
+      color: #ee5d50;
+      border: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .empty-state {
+      text-align: center;
+      color: #8f9bba;
+      font-size: 13px;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="header-card">
+      <h2>AYLIK HARCAMA TUTARI</h2>
+      <div class="total-amount" id="totalAmount">₺0,00</div>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label>Harcama Açıklaması</label>
+        <input type="text" id="descInput" class="input-field" placeholder="Örn: Benzin, Market, Kahve...">
+      </div>
+      <div class="form-group">
+        <label>Tutar (₺)</label>
+        <input type="number" id="amountInput" class="input-field" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Tarih</label>
+        <input type="date" id="dateInput" class="input-field">
+      </div>
+      <button class="btn-add" onclick="addExpense()">Harcama Ekle</button>
+    </div>
+
+    <div class="card">
+      <div class="filter-section">
+        <select id="monthFilter" class="select-field" onchange="updateUI()">
+          <option value="all">Tüm Aylar</option>
+          <option value="0">Ocak</option>
+          <option value="1">Şubat</option>
+          <option value="2">Mart</option>
+          <option value="3">Nisan</option>
+          <option value="4">Mayıs</option>
+          <option value="5">Haziran</option>
+          <option value="6">Temmuz</option>
+          <option value="7">Ağustos</option>
+          <option value="8">Eylül</option>
+          <option value="9">Ekim</option>
+          <option value="10">Kasım</option>
+          <option value="11">Aralık</option>
+        </select>
+        <select id="yearFilter" class="select-field" onchange="updateUI()"></select>
+      </div>
+
+      <div class="list-header">
+        <span class="list-title">Geçmiş İşlemler</span>
+        <button class="reset-btn" onclick="resetAllData()">Tüm Verileri Sıfırla</button>
+      </div>
+
+      <ul class="expense-list" id="expenseList"></ul>
+    </div>
+  </div>
+
+  <script>
+    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    function initFilters() {
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // YYYY-MM-DD formatında bugünü atıyoruz (mobilde kaymayı engeller)
+      const formattedDate = today.toISOString().split('T')[0];
+      document.getElementById('dateInput').value = formattedDate;
+
+      document.getElementById('monthFilter').value = currentMonth;
+
+      const yearSelect = document.getElementById('yearFilter');
+      yearSelect.innerHTML = '';
+      
+      for (let y = currentYear; y <= currentYear + 4; y++) {
+        const option = document.createElement('option');
+        option.value = y;
+        option.textContent = y;
+        yearSelect.appendChild(option);
+      }
+      yearSelect.value = currentYear;
+    }
+
+    function addExpense() {
+      const desc = document.getElementById('descInput').value.trim();
+      const amount = parseFloat(document.getElementById('amountInput').value);
+      const dateVal = document.getElementById('dateInput').value;
+
+      if (!desc || isNaN(amount) || amount <= 0 || !dateVal) {
+        alert('Lütfen tüm alanları geçerli şekilde doldurun.');
+        return;
+      }
+
+      const expense = {
+        id: Date.now(),
+        desc: desc,
+        amount: amount,
+        date: dateVal
+      };
+
+      expenses.push(expense);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+
+      document.getElementById('descInput').value = '';
+      document.getElementById('amountInput').value = '';
+      document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+
+      updateUI();
+    }
+
+    function deleteSingleExpense(id) {
+      expenses = expenses.filter(item => item.id !== id);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+      updateUI();
+    }
+
+    function updateUI() {
+      const selectedMonth = document.getElementById('monthFilter').value;
+      const selectedYear = document.getElementById('yearFilter').value;
+      const listElement = document.getElementById('expenseList');
+
+      listElement.innerHTML = '';
+      let total = 0;
+
+      const filtered = expenses.filter(item => {
+        const d = new Date(item.date);
+        const matchMonth = selectedMonth === 'all' || d.getMonth() == selectedMonth;
+        const matchYear = d.getFullYear() == selectedYear;
+        return matchMonth && matchYear;
+      });
+
+      if (filtered.length === 0) {
+        listElement.innerHTML = '<div class="empty-state">Seçili dönemde harcama bulunamadı.</div>';
+      } else {
+        filtered.forEach(item => {
+          total += item.amount;
+          const li = document.createElement('li');
+          li.className = 'expense-item';
+          
+          const itemDate = new Date(item.date).toLocaleDateString('tr-TR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          });
+
+          li.innerHTML = `
+            <div class="expense-info">
+              <div class="title">${item.desc}</div>
+              <div class="date">${itemDate}</div>
+            </div>
+            <div class="expense-right">
+              <span class="expense-amount">-₺${item.amount.toFixed(2)}</span>
+              <button class="delete-item-btn" onclick="deleteSingleExpense(${item.id})" title="Sil">✕</button>
+            </div>
+          `;
+          listElement.appendChild(li);
+        });
+      }
+
+      document.getElementById('totalAmount').textContent = `₺${total.toFixed(2)}`;
+    }
+
+    function resetAllData() {
+      if (confirm('Tüm harcama geçmişiniz silinecektir. Emin misiniz?')) {
+        expenses = [];
+        localStorage.removeItem('expenses');
+        updateUI();
+      }
+    }
+
+    initFilters();
+    updateUI();
+  </script>
+</body>
+</html>
